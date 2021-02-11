@@ -1,16 +1,14 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 
-from .ui.main_window import MainWindow
+from .ui.app_view import AppView
 
 
-def main(path=None):
+def main():
     app = QApplication(sys.argv)
-    _ = MainWindow(path)
+    _ = AppView()
     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
-    import os
-    this_dir = os.path.dirname(__file__)
-    main(os.path.join(this_dir, 'files', 'data', '20191113.txt'))
+    main()

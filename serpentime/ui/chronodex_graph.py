@@ -11,16 +11,29 @@ MIN_WEDGE_SIZE_FRACTION = 1/12
 class ChronodexGraph(QGraphicsScene):
     """A graphical representation of the Chronodex."""
 
-    def __init__(self, chronodex=None):
+    def __init__(self, chronodex):
         super().__init__()
-        self.chronodex = chronodex
-        self.activity_wedges = []
+        self._chronodex = chronodex
 
         self.setSceneRect(0, 0, WINDOW_SIZE, WINDOW_SIZE)
         self.center_pos = self.sceneRect().center()
         self.size = self.sceneRect().size()
 
-        for activity in chronodex.activities:
+        self.draw_chronodex()
+
+    @property
+    def chronodex(self):
+        return self._chronodex
+
+    @chronodex.setter
+    def chronodex(self, value):
+        self._chronodex = value
+        self.draw_chronodex()
+
+    def draw_chronodex(self):
+        self.clear()
+        self.activity_wedges = []
+        for activity in self._chronodex.activities:
             self.activity_wedges.append(self.add_activity_wedge(activity))
 
     def add_activity_wedge(self, activity):
