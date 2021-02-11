@@ -1,11 +1,12 @@
 class Activity(object):
     """A class representing an activity during a day."""
 
-    def __init__(self, start_time, end_time=None, name='', category=''):
-        self.start_time = start_time
-        self.end_time = end_time
+    def __init__(self, start, end=None, name='', category='', weight=5):
+        self.start = start
+        self.end = end
         self.name = name
         self.category = category
+        self.weight = weight
 
 
 class Chronodex(object):
@@ -24,18 +25,24 @@ class Chronodex(object):
                 params = [elt.strip() for elt in line.split(',')]
                 if any([param != '' for param in params[1:]]):
                     if params[0].isnumeric():
+                        weight = params[2]
+                        if weight.isnumeric():
+                            weight = int(weight)
+                        else:
+                            weight = 10
                         activities.append(
                             Activity(
-                                start_time=int(params[0]),
-                                end_time=None,
+                                start=int(params[0]),
+                                end=None,
                                 category=params[1],
                                 name=params[3],
+                                weight=weight,
                             )
                         )
         # Fills the end time of the activities
         if len(activities) > 1:
             for ind, activity in enumerate(activities[1:]):
-                activities[ind].end_time = activity.start_time
-        activities[-1].end_time = 24
+                activities[ind].end = activity.start
+        activities[-1].end = 24
 
         return cls(activities)
