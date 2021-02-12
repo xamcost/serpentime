@@ -2,8 +2,8 @@ from PyQt5 import QtCore
 
 
 COLUMNS = [
-    ('Start Time', 'start_time'),
-    ('End Time', 'end_time'),
+    ('Start Time', 'start'),
+    ('End Time', 'end'),
     ('Category', 'category'),
     ('Name', 'name'),
 ]
@@ -14,7 +14,17 @@ class ChronodexTableModel(QtCore.QAbstractTableModel):
 
     def __init__(self, chronodex):
         super().__init__()
-        self.chronodex = chronodex
+        self._chronodex = chronodex
+
+    @property
+    def chronodex(self):
+        return self._chronodex
+
+    @chronodex.setter
+    def chronodex(self, value):
+        self._chronodex = value
+        # Refreshes the table
+        self.layoutChanged.emit()
 
     def data(self, index, role):
         if role == QtCore.Qt.DisplayRole:
@@ -26,4 +36,4 @@ class ChronodexTableModel(QtCore.QAbstractTableModel):
         return len(self.chronodex.activities)
 
     def columnCount(self, index):
-        return len(self.chronodex.activities[0])
+        return len(COLUMNS)
