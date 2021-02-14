@@ -13,6 +13,16 @@ class ChronodexGraph(QGraphicsScene):
     """A graphical representation of the Chronodex."""
 
     def __init__(self, chronodex, preferences):
+        """Handles the chronodex graphical design.
+
+        Parameters
+        ----------
+        chronodex: serpentime.core.Chronodex
+            The Chronodex instance to be rendered.
+        preferences: dict
+            A dictionary holding the settings for the chronodex graphical
+            representation (color and weight for the activities, etc...).
+        """
         super().__init__()
         self._chronodex = chronodex
         self._preferences = preferences
@@ -44,6 +54,8 @@ class ChronodexGraph(QGraphicsScene):
         self.draw_chronodex()
 
     def draw_chronodex(self):
+        """Redraws the chronodex graph.
+        """
         self.clear()
         self.activity_wedges = []
         for activity in self._chronodex.activities:
@@ -84,6 +96,16 @@ class ChronodexGraph(QGraphicsScene):
         return None
 
     def get_categories(self):
+        """Returns a dictionary mapping activities' categories' names to
+        a dictionary containing the settings for these categories, based
+        on the preferences stored in :attr:`preferences`.
+
+        Returns
+        -------
+        categories: dict
+            A dictionary of type
+            {category_name: {'color': '#FFFFFF', 'weight': 5, 'aliases': []}}.
+        """
         categories = {}
         for cat in self._preferences.get('categories', []):
             categories[cat['name']] = {

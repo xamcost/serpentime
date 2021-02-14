@@ -18,8 +18,13 @@ DATA_PATH = pkg_resources.resource_filename("serpentime.files", "data")
 
 
 class AppModel(object):
+    """The application model for the Serpentime UI.
+    """
 
     def __init__(self):
+        """Initialises the application model by loading today's chronodex.
+        If none exists, creates an empty chronodex ready to be edited.
+        """
         self.txt_file_list = []
         self.csv_file_list = []
         for fi in os.listdir(DATA_PATH):
@@ -72,6 +77,18 @@ class AppModel(object):
         self.chronodex_graph.preferences = self.preferences
 
     def get_chronodex(self, date):
+        """Returns the Chronodex instances for the given date.
+
+        Parameters
+        ----------
+        date: datetime.Date
+            The date corresponding to the Chronodex to be returned.
+
+        Returns
+        -------
+        chronodex: serpentime.core.Chronodex
+            The Chronodex instance corresponding to the given date.
+        """
         basename = date.isoformat().replace('-', '')
         csvname = basename + '.csv'
         txtname = basename + '.txt'
@@ -82,12 +99,22 @@ class AppModel(object):
         return Chronodex()
 
     def load_chronodex(self, filename):
+        """Assigns a Chronodex loaded from the given filename to
+        :attr:`chronodex`.
+
+        Parameters
+        ----------
+        filename: str
+            The full name of the file containing the chronodex data.
+        """
         if filename.endswith(".txt"):
-            self.model.chronodex = Chronodex.from_txt(filename)
+            self.chronodex = Chronodex.from_txt(filename)
         elif filename.endswith(".csv"):
-            self.model.chronodex = Chronodex.from_csv(filename)
+            self.chronodex = Chronodex.from_csv(filename)
 
     def save_chronodex(self):
+        """Saves the chronodex data in a csv file.
+        """
         filename = self._date.isoformat().replace('-', '') + '.csv'
         with open(os.path.join(DATA_PATH, filename), 'w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
@@ -101,6 +128,8 @@ class AppModel(object):
             self.csv_file_list.append(filename)
 
     def delete_chronodex(self):
+        """Deletes the chronodex file corresponding to :attr:`date`.
+        """
         basename = self._date.isoformat().replace('-', '')
         csvname = basename + '.csv'
         txtname = basename + '.txt'
@@ -113,12 +142,17 @@ class AppModel(object):
         self.chronodex = Chronodex()
 
     def load_preferences(self):
+        """Assigns to :attr:`preferences` the loaded preferences dictionary
+        from serpentime/files/preferences.json
+        """
         with open(PREF_PATH, 'r') as fi:
             preferences = json.load(fi)
         print(preferences)
         return preferences
 
     def save_preferences(self):
+        """Saves the preferences.
+        """
         with open(PREF_PATH, 'w') as fi:
             json.dump(self.preferences, fi)
 
