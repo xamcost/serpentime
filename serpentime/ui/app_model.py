@@ -1,15 +1,20 @@
 import pkg_resources
 import os
 import csv
+import json
 from datetime import date
 
 from serpentime.core.chronodex import Chronodex
 
 from .chronodex_graph import ChronodexGraph
 from .chronodex_table_model import ChronodexTableModel
+from .pref_table_model import PrefTableModel
 
 
-FILE_PATH = pkg_resources.resource_filename("serpentime.files", "data")
+PREF_PATH = os.path.join(
+    pkg_resources.resource_filename("serpentime", "files"), "preferences.json"
+)
+DATA_PATH = pkg_resources.resource_filename("serpentime.files", "data")
 
 
 class AppModel(object):
@@ -17,14 +22,16 @@ class AppModel(object):
     def __init__(self):
         self.txt_file_list = []
         self.csv_file_list = []
-        for fi in os.listdir(FILE_PATH):
+        for fi in os.listdir(DATA_PATH):
             if fi.endswith('.txt'):
                 self.txt_file_list.append(fi)
             elif fi.endswith('.csv'):
                 self.csv_file_list.append(fi)
         self._date = date.today()
         self._chronodex = self.get_chronodex(self._date)
-        self.chronodex_graph = ChronodexGraph(self.chronodex)
+        self.preferences = self.load_preferences()
+        self.pref_table = PrefTableModel(preferences=self.preferences)
+        self.chronodex_graph = ChronodexGraph(self.chronodex, self.preferences)
         self.chronodex_table = ChronodexTableModel(self.chronodex)
 
     @property
@@ -46,14 +53,32 @@ class AppModel(object):
         self.chronodex_graph.chronodex = self._chronodex
         self.chronodex_table.chronodex = self._chronodex
 
+    @property
+    def use_custom_weight(self):
+        return self.preferences.get("use_custom_weight", False)
+
+    @use_custom_weight.setter
+    def use_custom_weight(self, value):
+        self.preferences["use_custom_weight"] = value
+        self.chronodex_graph.preferences = self.preferences
+
+    @property
+    def auto_save(self):
+        return self.preferences.get("auto_save", False)
+
+    @auto_save.setter
+    def auto_save(self, value):
+        self.preferences["auto_save"] = value
+        self.chronodex_graph.preferences = self.preferences
+
     def get_chronodex(self, date):
         basename = date.isoformat().replace('-', '')
         csvname = basename + '.csv'
         txtname = basename + '.txt'
         if csvname in self.csv_file_list:
-            return Chronodex.from_csv(os.path.join(FILE_PATH, csvname))
+            return Chronodex.from_csv(os.path.join(DATA_PATH, csvname))
         elif txtname in self.txt_file_list:
-            return Chronodex.from_txt(os.path.join(FILE_PATH, txtname))
+            return Chronodex.from_txt(os.path.join(DATA_PATH, txtname))
         return Chronodex()
 
     def load_chronodex(self, filename):
@@ -64,7 +89,7 @@ class AppModel(object):
 
     def save_chronodex(self):
         filename = self._date.isoformat().replace('-', '') + '.csv'
-        with open(os.path.join(FILE_PATH, filename), 'w') as csvfile:
+        with open(os.path.join(DATA_PATH, filename), 'w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             for act in self.chronodex.activities:
                 if act.is_valid():
@@ -80,12 +105,22 @@ class AppModel(object):
         csvname = basename + '.csv'
         txtname = basename + '.txt'
         if csvname in self.csv_file_list:
-            os.remove(os.path.join(FILE_PATH, csvname))
+            os.remove(os.path.join(DATA_PATH, csvname))
             self.csv_file_list.remove(csvname)
         if txtname in self.txt_file_list:
-            os.remove(os.path.join(FILE_PATH, txtname))
+            os.remove(os.path.join(DATA_PATH, txtname))
             self.txt_file_list.remove(txtname)
         self.chronodex = Chronodex()
+
+    def load_preferences(self):
+        with open(PREF_PATH, 'r') as fi:
+            preferences = json.load(fi)
+        print(preferences)
+        return preferences
+
+    def save_preferences(self):
+        with open(PREF_PATH, 'w') as fi:
+            json.dump(self.preferences, fi)
 
 
 if __name__ == "__main__":

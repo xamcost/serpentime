@@ -3,7 +3,7 @@ import os
 from datetime import date, timedelta
 
 from PyQt5.QtWidgets import (
-    QAction, QCalendarWidget, QDateEdit, QDockWidget, QFileDialog,
+    QAction, QCalendarWidget, QCheckBox, QDateEdit, QDockWidget, QFileDialog,
     QGraphicsView, QHBoxLayout, QMainWindow, QPushButton, QTableView,
     QVBoxLayout, QWidget
 )
@@ -62,7 +62,7 @@ class AppView(QMainWindow):
         self.main_view.setLayout(base_layout)
         self.setCentralWidget(self.main_view)
 
-        # Sets up the left dock pane for the calendar and table
+        # Sets up the table dock pane for the calendar and table
         self.table_dock = QDockWidget(self)
         self.calendar_widget = QCalendarWidget()
         self.calendar_widget.clicked.connect(self.on_date_changed)
@@ -108,15 +108,78 @@ class AppView(QMainWindow):
         self.table_dock.setWidget(right_dock_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.table_dock)
 
+        # Sets up the preferences dock pane
+        self.pref_dock = QDockWidget(self)
+        self.add_category_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "add-black-18dp.svg")), ""
+        )
+        self.add_category_button.clicked.connect(self.add_category)
+        self.del_category_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "remove-black-18dp.svg")), ""
+        )
+        self.del_category_button.clicked.connect(
+            self.remove_selected_categories
+        )
+        self.save_pref_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
+        )
+        self.save_pref_button.clicked.connect(self.save_preferences)
+        self.pref_table_view = QTableView()
+        self.pref_table_view.setModel(self.model.pref_table)
+        self.pref_table_view.resizeColumnsToContents()
+        self.weight_checkbox = QCheckBox("Use custom weight")
+        self.weight_checkbox.setChecked(self.model.use_custom_weight)
+        self.weight_checkbox.setToolTip(
+            "If checked, weights for categories in the above table are "
+            "ignored."
+        )
+        self.weight_checkbox.stateChanged.connect(self.set_custom_weight)
+        self.auto_save_checkbox = QCheckBox("Auto save")
+        self.auto_save_checkbox.setChecked(self.model.auto_save)
+        self.auto_save_checkbox.setToolTip(
+            "If checked, the current chronodex will be automatically "
+            "saved for each edition of its table, or when the date is changed."
+        )
+        self.auto_save_checkbox.stateChanged.connect(self.set_auto_save)
+
+        pref_table_button_layout = QHBoxLayout()
+        pref_table_button_layout.addWidget(self.add_category_button)
+        pref_table_button_layout.addWidget(self.del_category_button)
+        pref_table_button_layout.addStretch()
+        pref_table_button_layout.addWidget(self.save_pref_button)
+
+        pref_dock_layout = QVBoxLayout()
+        pref_dock_layout.addLayout(pref_table_button_layout)
+        pref_dock_layout.addWidget(self.pref_table_view)
+        pref_dock_layout.addWidget(self.weight_checkbox)
+        pref_dock_layout.addWidget(self.auto_save_checkbox)
+        pref_dock_widget = QWidget()
+        pref_dock_widget.setLayout(pref_dock_layout)
+        self.pref_dock.setWidget(pref_dock_widget)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.pref_dock)
+
         # Sets up menus
         menubar = self.menuBar()
         # menubar.setNativeMenuBar(False)
-        view_menu = menubar.addMenu('View')
-        table_pane_visibility = QAction('Table pane', self, checkable=True)
-        table_pane_visibility.setStatusTip('Calendar and table pane')
-        table_pane_visibility.setChecked(True)
-        table_pane_visibility.triggered.connect(self.toogle_table_pane)
-        view_menu.addAction(table_pane_visibility)
+        view_menu = menubar.addMenu('&View')
+        self.toggle_table_pane_action = QAction(
+            'Table pane', self, checkable=True
+        )
+        self.toggle_table_pane_action.setStatusTip('Calendar and table pane')
+        self.toggle_table_pane_action.setChecked(True)
+        self.toggle_table_pane_action.triggered.connect(self.toogle_table_pane)
+        view_menu.addAction(self.toggle_table_pane_action)
+        self.toggle_pref_pane_action = QAction(
+            'Chronodex pane', self, checkable=True
+        )
+        self.toggle_pref_pane_action.setStatusTip('Preferences pane')
+        self.toggle_pref_pane_action.setChecked(True)
+        self.toggle_pref_pane_action.triggered.connect(self.toogle_pref_pane)
+        view_menu.addAction(self.toggle_pref_pane_action)
+
+        # Sets general config of UI
+        self.setGeometry(100, 100, 1200, 700)
+        self.setWindowTitle("Serpentime")
 
         self.show()
 
@@ -134,7 +197,8 @@ class AppView(QMainWindow):
 
     def on_date_changed(self, new_date):
         # Saves the chronodex before changing page
-        self.save_chronodex()
+        if self.model.auto_save:
+            self.save_chronodex()
         self.model.date = new_date.toPyDate()
         self.calendar_widget.setSelectedDate(new_date)
         # Disconnect and then reconnect dateChanged to avoid multiple calls
@@ -168,13 +232,20 @@ class AppView(QMainWindow):
     def toogle_table_pane(self):
         visible = self.table_dock.isVisible()
         self.table_dock.setVisible(not visible)
+        self.toggle_table_pane_action.setChecked(not visible)
         if visible:
             self.table_dock_button.setText("\u25C0")
         else:
             self.table_dock_button.setText("\u25B6")
 
     def toogle_pref_pane(self):
-        pass
+        visible = self.pref_dock.isVisible()
+        self.pref_dock.setVisible(not visible)
+        self.toggle_pref_pane_action.setChecked(not visible)
+        if visible:
+            self.pref_dock_button.setText("\u25B6")
+        else:
+            self.pref_dock_button.setText("\u25C0")
 
     def add_activity(self):
         selected = self.table_view.selectedIndexes()
@@ -205,3 +276,28 @@ class AppView(QMainWindow):
 
     def delete_chronodex(self):
         self.model.delete_chronodex()
+
+    def add_category(self):
+        selected = self.pref_table_view.selectedIndexes()
+        row_indexes = [ind.row() for ind in selected]
+        if len(row_indexes) > 0:
+            pos = max(row_indexes) + 1
+        else:
+            pos = self.model.pref_table.rowCount(None)
+        self.model.pref_table.insertRows(pos, 1, QModelIndex())
+
+    def remove_selected_categories(self):
+        selected = self.pref_table_view.selectedIndexes()
+        row_indexes = reversed(sorted(set([ind.row() for ind in selected])))
+        for ind in row_indexes:
+            self.model.pref_table.removeRow(ind, QModelIndex())
+        self.model.chronodex_graph.draw_chronodex()
+
+    def save_preferences(self):
+        self.model.save_preferences()
+
+    def set_custom_weight(self, state):
+        self.model.use_custom_weight = state == Qt.Checked
+
+    def set_auto_save(self, state):
+        self.model.auto_save = state == Qt.Checked
