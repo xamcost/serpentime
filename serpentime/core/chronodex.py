@@ -1,12 +1,24 @@
 class Activity(object):
     """A class representing an activity during a day."""
 
-    def __init__(self, start, end=None, name='', category='', weight=5):
+    def __init__(self, start=None, end=None, name='', category='', weight=5):
         self.start = start
         self.end = end
         self.name = name
         self.category = category
         self.weight = weight
+
+    def is_valid(self):
+        if not isinstance(self.start, (int, float)):
+            return False
+        if not isinstance(self.end, (int, float)):
+            return False
+        checks = [
+            self.start >= 0, self.start < 24,
+            self.end >= 0, self.end < 24,
+            self.weight >= 0, self.weight <= 10,
+        ]
+        return all(checks)
 
 
 class Chronodex(object):

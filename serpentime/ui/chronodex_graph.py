@@ -50,12 +50,14 @@ class ChronodexGraph(QGraphicsScene):
         wedge: QGraphicsEllipseItem
             The Qt object representing the wedge for the given Activity.
         """
-        size = activity.weight * MIN_WEDGE_SIZE_FRACTION * WINDOW_SIZE
-        wedge = self.addEllipse(0, 0, size, size)
-        wedge.setPos(self.center_pos - wedge.boundingRect().center())
+        if activity.is_valid():
+            size = activity.weight * MIN_WEDGE_SIZE_FRACTION * WINDOW_SIZE
+            wedge = self.addEllipse(0, 0, size, size)
+            wedge.setPos(self.center_pos - wedge.boundingRect().center())
 
-        start, end = (activity.start, activity.end)
-        wedge.setStartAngle((START_ANGLE - start * MIN_WEDGE_ANGLE))
-        wedge.setSpanAngle(-MIN_WEDGE_ANGLE * (end - start))
+            start, end = (activity.start, activity.end)
+            wedge.setStartAngle((START_ANGLE - start * MIN_WEDGE_ANGLE))
+            wedge.setSpanAngle(-MIN_WEDGE_ANGLE * (end - start))
 
-        return wedge
+            return wedge
+        return None
