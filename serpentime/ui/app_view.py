@@ -74,6 +74,10 @@ class AppView(QMainWindow):
             QIcon(os.path.join(ICON_PATH, "remove-black-18dp.svg")), ""
         )
         self.del_row_button.clicked.connect(self.remove_selected_activities)
+        self.del_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "delete-black-18dp.svg")), ""
+        )
+        self.del_button.clicked.connect(self.delete_chronodex)
         self.load_button = QPushButton(
             QIcon(os.path.join(ICON_PATH, "download-black-18dp.svg")), ""
         )
@@ -91,6 +95,7 @@ class AppView(QMainWindow):
         table_button_layout.addWidget(self.add_row_button)
         table_button_layout.addWidget(self.del_row_button)
         table_button_layout.addStretch()
+        table_button_layout.addWidget(self.del_button)
         table_button_layout.addWidget(self.load_button)
         table_button_layout.addWidget(self.save_button)
 
@@ -128,6 +133,8 @@ class AppView(QMainWindow):
         )
 
     def on_date_changed(self, new_date):
+        # Saves the chronodex before changing page
+        self.save_chronodex()
         self.model.date = new_date.toPyDate()
         self.calendar_widget.setSelectedDate(new_date)
         # Disconnect and then reconnect dateChanged to avoid multiple calls
@@ -193,4 +200,8 @@ class AppView(QMainWindow):
         self.model.load_chronodex(filename)
 
     def save_chronodex(self):
-        self.model.save_chronodex()
+        if len(self.model.chronodex.activities) > 0:
+            self.model.save_chronodex()
+
+    def delete_chronodex(self):
+        self.model.delete_chronodex()

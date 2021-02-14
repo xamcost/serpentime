@@ -67,9 +67,25 @@ class AppModel(object):
         with open(os.path.join(FILE_PATH, filename), 'w') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             for act in self.chronodex.activities:
-                writer.writerow(
-                    [act.start, act.end, act.category, act.name, act.weight]
-                )
+                if act.is_valid():
+                    writer.writerow(
+                        [act.start, act.end, act.category,
+                         act.name, act.weight]
+                    )
+        if filename not in self.csv_file_list:
+            self.csv_file_list.append(filename)
+
+    def delete_chronodex(self):
+        basename = self._date.isoformat().replace('-', '')
+        csvname = basename + '.csv'
+        txtname = basename + '.txt'
+        if csvname in self.csv_file_list:
+            os.remove(os.path.join(FILE_PATH, csvname))
+            self.csv_file_list.remove(csvname)
+        if txtname in self.txt_file_list:
+            os.remove(os.path.join(FILE_PATH, txtname))
+            self.txt_file_list.remove(txtname)
+        self.chronodex = Chronodex()
 
 
 if __name__ == "__main__":
