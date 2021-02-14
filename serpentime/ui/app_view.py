@@ -3,11 +3,14 @@ import os
 from datetime import date, timedelta
 
 from PyQt5.QtWidgets import (
-    QAction, QCalendarWidget, QDateEdit, QDockWidget, QGraphicsView,
-    QHBoxLayout, QMainWindow, QPushButton, QTableView, QVBoxLayout, QWidget
+    QAction, QCalendarWidget, QDateEdit, QDockWidget, QFileDialog,
+    QGraphicsView, QHBoxLayout, QMainWindow, QPushButton, QTableView,
+    QVBoxLayout, QWidget
 )
 from PyQt5.QtCore import QDate, QModelIndex, Qt
 from PyQt5.QtGui import QIcon
+
+from serpentime.core.chronodex import Chronodex
 
 from .app_model import AppModel
 
@@ -76,6 +79,7 @@ class AppView(QMainWindow):
         self.load_button = QPushButton(
             QIcon(os.path.join(ICON_PATH, "download-black-18dp.svg")), ""
         )
+        self.load_button.clicked.connect(self.load_chronodex)
         self.save_button = QPushButton(
             QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
         )
@@ -181,3 +185,10 @@ class AppView(QMainWindow):
         for ind in row_indexes:
             self.model.chronodex_table.removeRow(ind, QModelIndex())
         self.model.chronodex_graph.draw_chronodex()
+
+    def load_chronodex(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Select file containing chronodex info",
+            os.path.expanduser("~"), "(*.txt *.csv)",
+        )
+        self.model.chronodex = Chronodex.from_file(filename)

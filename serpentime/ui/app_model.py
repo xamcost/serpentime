@@ -18,7 +18,7 @@ class AppModel(object):
             fi for fi in os.listdir(FILE_PATH) if fi.endswith('.txt')
         ]
         self._date = date.today()
-        self.chronodex = self.get_chronodex(self._date)
+        self._chronodex = self.get_chronodex(self._date)
         self.chronodex_graph = ChronodexGraph(self.chronodex)
         self.chronodex_table = ChronodexTableModel(self.chronodex)
 
@@ -30,6 +30,14 @@ class AppModel(object):
     def date(self, value):
         self._date = value
         self.chronodex = self.get_chronodex(value)
+
+    @property
+    def chronodex(self):
+        return self._chronodex
+
+    @chronodex.setter
+    def chronodex(self, value):
+        self._chronodex = value
         self.chronodex_graph.chronodex = self.chronodex
         self.chronodex_table.chronodex = self.chronodex
 
