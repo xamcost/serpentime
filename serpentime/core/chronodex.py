@@ -28,7 +28,7 @@ class Chronodex(object):
         self.activities = activities or []
 
     @classmethod
-    def from_file(cls, path):
+    def from_txt(cls, path):
         """Returns a Chronodex instance from a txt file.
         """
         activities = []
@@ -56,5 +56,26 @@ class Chronodex(object):
             for ind, activity in enumerate(activities[1:]):
                 activities[ind].end = activity.start
         activities[-1].end = 24
+
+        return cls(activities)
+
+    @classmethod
+    def from_csv(cls, path):
+        """Returns a Chronodex instance from a txt file.
+        """
+        activities = []
+        with open(path, 'r') as fid:
+            for line in fid:
+                params = [elt.strip() for elt in line.split(',')]
+                if len(params) == 5:
+                    activities.append(
+                        Activity(
+                            start=float(params[0]),
+                            end=float(params[1]),
+                            category=params[2],
+                            name=params[3],
+                            weight=float(params[4]),
+                        )
+                    )
 
         return cls(activities)

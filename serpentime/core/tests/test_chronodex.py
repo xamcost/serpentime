@@ -9,10 +9,10 @@ THIS_DIR = os.path.dirname(__file__)
 
 class TestChronodex(TestCase):
 
-    def test_instantiation_from_file(self):
+    def test_instantiation_from_txt(self):
         """Checks correct instantiation from txt file."""
         # When
-        dex = Chronodex.from_file(os.path.join(THIS_DIR, '20191113.txt'))
+        dex = Chronodex.from_txt(os.path.join(THIS_DIR, '20191113.txt'))
         expected = [
             (0, 3, 'chore', 'closet claustrophobe', 7),
             (3, 10, 'sleep', '', 5),

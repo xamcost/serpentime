@@ -10,8 +10,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QDate, QModelIndex, Qt
 from PyQt5.QtGui import QIcon
 
-from serpentime.core.chronodex import Chronodex
-
 from .app_model import AppModel
 
 
@@ -83,6 +81,7 @@ class AppView(QMainWindow):
         self.save_button = QPushButton(
             QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
         )
+        self.save_button.clicked.connect(self.save_chronodex)
         self.table_view = QTableView()
         self.table_view.setModel(self.model.chronodex_table)
         self.table_view.resizeColumnsToContents()
@@ -191,4 +190,7 @@ class AppView(QMainWindow):
             self, "Select file containing chronodex info",
             os.path.expanduser("~"), "(*.txt *.csv)",
         )
-        self.model.chronodex = Chronodex.from_file(filename)
+        self.model.load_chronodex(filename)
+
+    def save_chronodex(self):
+        self.model.save_chronodex()
