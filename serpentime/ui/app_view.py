@@ -11,6 +11,7 @@ from PyQt5.QtCore import QDate, QModelIndex, Qt
 from PyQt5.QtGui import QIcon
 
 from .app_model import AppModel
+from .item_delegates import ComboBoxDelegate, SpinBoxDelegate
 
 
 ICON_PATH = pkg_resources.resource_filename("serpentime.ui", "icons")
@@ -27,32 +28,9 @@ class AppView(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        # Sets up the date navigation bar on top of the Chronodex graph
-        self.pref_dock_button = QPushButton("\u25C0")
-        self.pref_dock_button.clicked.connect(self.toogle_pref_pane)
-        self.prev_week_button = QPushButton("<<")
-        self.prev_week_button.clicked.connect(self.on_prev_week_clicked)
-        self.prev_day_button = QPushButton("<")
-        self.prev_day_button.clicked.connect(self.on_prev_day_clicked)
-        self.date_edit = QDateEdit(QDate.currentDate())
-        self.date_edit.dateChanged.connect(self.on_date_changed)
-        self.next_day_button = QPushButton(">")
-        self.next_day_button.clicked.connect(self.on_next_day_clicked)
-        self.next_week_button = QPushButton(">>")
-        self.next_week_button.clicked.connect(self.on_next_week_clicked)
-        self.table_dock_button = QPushButton("\u25B6")
-        self.table_dock_button.clicked.connect(self.toogle_table_pane)
+        # Sets up the central widget: date navigation bar and graph
+        date_nav_layout = self.create_date_navigation_bar()
 
-        date_nav_layout = QHBoxLayout()
-        date_nav_layout.addWidget(self.pref_dock_button)
-        date_nav_layout.addWidget(self.prev_week_button)
-        date_nav_layout.addWidget(self.prev_day_button)
-        date_nav_layout.addWidget(self.date_edit)
-        date_nav_layout.addWidget(self.next_day_button)
-        date_nav_layout.addWidget(self.next_week_button)
-        date_nav_layout.addWidget(self.table_dock_button)
-
-        # Sets up the Chronodex graph as the main widget
         self.chronodex_view = QGraphicsView(self.model.chronodex_graph)
         base_layout = QVBoxLayout()
         base_layout.addLayout(date_nav_layout)
@@ -86,9 +64,7 @@ class AppView(QMainWindow):
             QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
         )
         self.save_button.clicked.connect(self.save_chronodex)
-        self.table_view = QTableView()
-        self.table_view.setModel(self.model.chronodex_table)
-        self.table_view.resizeColumnsToContents()
+        self.table_view = self.create_chronodex_table()
         self.model.chronodex_table.dataChanged.connect(self.on_activity_edited)
 
         table_button_layout = QHBoxLayout()
@@ -127,6 +103,7 @@ class AppView(QMainWindow):
         self.pref_table_view = QTableView()
         self.pref_table_view.setModel(self.model.pref_table)
         self.pref_table_view.resizeColumnsToContents()
+        self.model.pref_table.dataChanged.connect(self.on_pref_edited)
         self.weight_checkbox = QCheckBox("Use custom weight")
         self.weight_checkbox.setChecked(self.model.use_custom_weight)
         self.weight_checkbox.setToolTip(
@@ -183,6 +160,58 @@ class AppView(QMainWindow):
 
         self.show()
 
+    def create_date_navigation_bar(self):
+        self.pref_dock_button = QPushButton("\u25C0")
+        self.pref_dock_button.clicked.connect(self.toogle_pref_pane)
+        self.prev_week_button = QPushButton("<<")
+        self.prev_week_button.clicked.connect(self.on_prev_week_clicked)
+        self.prev_day_button = QPushButton("<")
+        self.prev_day_button.clicked.connect(self.on_prev_day_clicked)
+        self.date_edit = QDateEdit(QDate.currentDate())
+        self.date_edit.dateChanged.connect(self.on_date_changed)
+        self.next_day_button = QPushButton(">")
+        self.next_day_button.clicked.connect(self.on_next_day_clicked)
+        self.next_week_button = QPushButton(">>")
+        self.next_week_button.clicked.connect(self.on_next_week_clicked)
+        self.table_dock_button = QPushButton("\u25B6")
+        self.table_dock_button.clicked.connect(self.toogle_table_pane)
+
+        date_nav_layout = QHBoxLayout()
+        date_nav_layout.addWidget(self.pref_dock_button)
+        date_nav_layout.addWidget(self.prev_week_button)
+        date_nav_layout.addWidget(self.prev_day_button)
+        date_nav_layout.addWidget(self.date_edit)
+        date_nav_layout.addWidget(self.next_day_button)
+        date_nav_layout.addWidget(self.next_week_button)
+        date_nav_layout.addWidget(self.table_dock_button)
+
+        return date_nav_layout
+
+    def create_chronodex_table(self):
+        table_view = QTableView()
+        table_view.setModel(self.model.chronodex_table)
+        col_names = [col[0] for col in self.model.chronodex_table.columns]
+        table_view.setItemDelegateForColumn(
+            col_names.index('Start'),
+            SpinBoxDelegate(table_view, 0, 23.99),
+        )
+        table_view.setItemDelegateForColumn(
+            col_names.index('End'),
+            SpinBoxDelegate(table_view, 0.01, 24),
+        )
+        self.category_delegate = ComboBoxDelegate(
+            table_view, self.model.categories
+        )
+        table_view.setItemDelegateForColumn(
+            col_names.index('Category'), self.category_delegate
+        )
+        table_view.setItemDelegateForColumn(
+            col_names.index('Weight'),
+            SpinBoxDelegate(table_view, 0, 10),
+        )
+        table_view.resizeColumnsToContents()
+        return table_view
+
     def on_prev_week_clicked(self):
         new_date = self.model.date - timedelta(days=7)
         self.date_edit.setDate(
@@ -228,6 +257,10 @@ class AppView(QMainWindow):
 
     def on_activity_edited(self, top_left, bottom_right):
         self.model.chronodex_graph.draw_chronodex()
+
+    def on_pref_edited(self, top_left, bottom_right):
+        self.model.preferences = self.model.pref_table.preferences
+        self.category_delegate.items = self.model.categories
 
     def toogle_table_pane(self):
         visible = self.table_dock.isVisible()

@@ -34,9 +34,11 @@ class AppModel(object):
                 self.csv_file_list.append(fi)
         self._date = date.today()
         self._chronodex = self.get_chronodex(self._date)
-        self.preferences = self.load_preferences()
-        self.pref_table = PrefTableModel(preferences=self.preferences)
-        self.chronodex_graph = ChronodexGraph(self.chronodex, self.preferences)
+        self._preferences = self.load_preferences()
+        self.pref_table = PrefTableModel(preferences=self._preferences)
+        self.chronodex_graph = ChronodexGraph(
+            self.chronodex, self._preferences
+        )
         self.chronodex_table = ChronodexTableModel(self.chronodex)
 
     @property
@@ -59,22 +61,36 @@ class AppModel(object):
         self.chronodex_table.chronodex = self._chronodex
 
     @property
+    def preferences(self):
+        return self._preferences
+
+    @preferences.setter
+    def preferences(self, value):
+        self._preferences = value
+        self.pref_table.preferences = self._preferences
+        self.chronodex_graph.preferences = self._preferences
+
+    @property
     def use_custom_weight(self):
-        return self.preferences.get("use_custom_weight", False)
+        return self._preferences.get("use_custom_weight", False)
 
     @use_custom_weight.setter
     def use_custom_weight(self, value):
-        self.preferences["use_custom_weight"] = value
-        self.chronodex_graph.preferences = self.preferences
+        self._preferences["use_custom_weight"] = value
+        self.chronodex_graph.preferences = self._preferences
 
     @property
     def auto_save(self):
-        return self.preferences.get("auto_save", False)
+        return self._preferences.get("auto_save", False)
 
     @auto_save.setter
     def auto_save(self, value):
-        self.preferences["auto_save"] = value
-        self.chronodex_graph.preferences = self.preferences
+        self._preferences["auto_save"] = value
+        self.chronodex_graph.preferences = self._preferences
+
+    @property
+    def categories(self):
+        return [cat['name'] for cat in self.pref_table.categories]
 
     def get_chronodex(self, date):
         """Returns the Chronodex instances for the given date.
@@ -147,7 +163,6 @@ class AppModel(object):
         """
         with open(PREF_PATH, 'r') as fi:
             preferences = json.load(fi)
-        print(preferences)
         return preferences
 
     def save_preferences(self):

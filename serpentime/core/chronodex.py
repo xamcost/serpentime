@@ -37,7 +37,7 @@ class Activity(object):
         if not isinstance(self.end, (int, float)):
             return False
         checks = [
-            self.start >= 0, self.start < 24,
+            self.start >= 0, self.start <= 24,
             self.end >= 0, self.end <= 24,
             self.weight >= 0, self.weight <= 10,
         ]
