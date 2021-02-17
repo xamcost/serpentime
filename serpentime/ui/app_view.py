@@ -44,36 +44,10 @@ class AppView(QMainWindow):
         self.table_dock = QDockWidget(self)
         self.calendar_widget = QCalendarWidget()
         self.calendar_widget.clicked.connect(self.on_date_changed)
-        self.add_row_button = QPushButton(
-            QIcon(os.path.join(ICON_PATH, "add-black-18dp.svg")), ""
-        )
-        self.add_row_button.clicked.connect(self.add_activity)
-        self.del_row_button = QPushButton(
-            QIcon(os.path.join(ICON_PATH, "remove-black-18dp.svg")), ""
-        )
-        self.del_row_button.clicked.connect(self.remove_selected_activities)
-        self.del_button = QPushButton(
-            QIcon(os.path.join(ICON_PATH, "delete-black-18dp.svg")), ""
-        )
-        self.del_button.clicked.connect(self.delete_chronodex)
-        self.load_button = QPushButton(
-            QIcon(os.path.join(ICON_PATH, "download-black-18dp.svg")), ""
-        )
-        self.load_button.clicked.connect(self.load_chronodex)
-        self.save_button = QPushButton(
-            QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
-        )
-        self.save_button.clicked.connect(self.save_chronodex)
         self.table_view = self.create_chronodex_table()
         self.model.chronodex_table.dataChanged.connect(self.on_activity_edited)
 
-        table_button_layout = QHBoxLayout()
-        table_button_layout.addWidget(self.add_row_button)
-        table_button_layout.addWidget(self.del_row_button)
-        table_button_layout.addStretch()
-        table_button_layout.addWidget(self.del_button)
-        table_button_layout.addWidget(self.load_button)
-        table_button_layout.addWidget(self.save_button)
+        table_button_layout = self.create_chronodex_table_button_bar()
 
         right_dock_layout = QVBoxLayout()
         right_dock_layout.addWidget(self.calendar_widget)
@@ -107,8 +81,8 @@ class AppView(QMainWindow):
         self.weight_checkbox = QCheckBox("Use custom weight")
         self.weight_checkbox.setChecked(self.model.use_custom_weight)
         self.weight_checkbox.setToolTip(
-            "If checked, weights for categories in the above table are "
-            "ignored."
+            "If checked, weights are taken from chronodex table, not from "
+            "preferences table above."
         )
         self.weight_checkbox.stateChanged.connect(self.set_custom_weight)
         self.auto_save_checkbox = QCheckBox("Auto save")
@@ -186,6 +160,38 @@ class AppView(QMainWindow):
         date_nav_layout.addWidget(self.table_dock_button)
 
         return date_nav_layout
+
+    def create_chronodex_table_button_bar(self):
+        self.add_row_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "add-black-18dp.svg")), ""
+        )
+        self.add_row_button.clicked.connect(self.add_activity)
+        self.del_row_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "remove-black-18dp.svg")), ""
+        )
+        self.del_row_button.clicked.connect(self.remove_selected_activities)
+        self.del_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "delete-black-18dp.svg")), ""
+        )
+        self.del_button.clicked.connect(self.delete_chronodex)
+        self.load_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "download-black-18dp.svg")), ""
+        )
+        self.load_button.clicked.connect(self.load_chronodex)
+        self.save_button = QPushButton(
+            QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
+        )
+        self.save_button.clicked.connect(self.save_chronodex)
+
+        table_button_layout = QHBoxLayout()
+        table_button_layout.addWidget(self.add_row_button)
+        table_button_layout.addWidget(self.del_row_button)
+        table_button_layout.addStretch()
+        table_button_layout.addWidget(self.del_button)
+        table_button_layout.addWidget(self.load_button)
+        table_button_layout.addWidget(self.save_button)
+
+        return table_button_layout
 
     def create_chronodex_table(self):
         table_view = QTableView()

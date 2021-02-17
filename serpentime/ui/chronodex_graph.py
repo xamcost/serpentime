@@ -78,7 +78,7 @@ class ChronodexGraph(QGraphicsScene):
         """
         if activity.is_valid():
             category_prefs = self.categories.get(activity.category, {})
-            if not self.preferences.get("use_custom_weight", False):
+            if self.preferences.get("use_custom_weight", False):
                 weight = activity.weight
             else:
                 weight = float(category_prefs.get('weight', activity.weight))

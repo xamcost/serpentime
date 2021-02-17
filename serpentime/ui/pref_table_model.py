@@ -4,7 +4,6 @@ from PyQt5.QtGui import QColor
 
 COLUMNS = [
     ('Category', 'name'),
-    ('Aliases', 'aliases'),
     ('Color', 'color'),
     ('Weight', 'weight'),
 ]
