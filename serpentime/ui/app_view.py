@@ -97,6 +97,14 @@ class AppView(QMainWindow):
                 "show_labels", self.show_labels_checkbox.isChecked()
             )
         )
+        self.overlay_checkbox = QCheckBox("Show overlay")
+        self.overlay_checkbox.setChecked(self.model.show_overlay)
+        self.overlay_checkbox.setToolTip(
+            "If checked, displays overlay circles on Chronodex graph."
+        )
+        self.overlay_checkbox.stateChanged.connect(
+            self.set_show_overlay
+        )
         self.weight_checkbox = QCheckBox("Use custom weight")
         self.weight_checkbox.setChecked(self.model.use_custom_weight)
         self.weight_checkbox.setToolTip(
@@ -123,6 +131,7 @@ class AppView(QMainWindow):
         pref_dock_layout.addWidget(self.pref_table_view)
         pref_dock_layout.addWidget(self.show_labels_checkbox)
         pref_dock_layout.addWidget(self.rotate_checkbox)
+        pref_dock_layout.addWidget(self.overlay_checkbox)
         pref_dock_layout.addWidget(self.weight_checkbox)
         pref_dock_layout.addWidget(self.auto_save_checkbox)
         pref_dock_widget = QWidget()
@@ -362,6 +371,9 @@ class AppView(QMainWindow):
 
     def set_activity_name_rotation(self, state):
         self.model.rotate_labels = state == Qt.Checked
+
+    def set_show_overlay(self, state):
+        self.model.show_overlay = state == Qt.Checked
 
     def set_custom_weight(self, state):
         self.model.use_custom_weight = state == Qt.Checked

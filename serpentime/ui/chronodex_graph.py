@@ -1,7 +1,7 @@
 from math import cos, pi, sin
 
 from PyQt5.QtWidgets import QGraphicsScene
-from PyQt5.QtGui import QBrush, QColor, QFont
+from PyQt5.QtGui import QBrush, QColor, QFont, QPen
 
 
 # Conversion factor for angle, from degree to radian
@@ -66,6 +66,15 @@ class ChronodexGraph(QGraphicsScene):
         """Redraws the chronodex graph.
         """
         self.clear()
+
+        if self.preferences.get("show_overlay", False):
+            for frac in [2, 4, 6, 8, 10]:
+                size = frac * MIN_WEDGE_SIZE_FRACTION * WINDOW_SIZE
+                x, y = (self.center_pos.x(), self.center_pos.y())
+                circ = self.addEllipse(x, y, size, size)
+                circ.setPos(self.center_pos - circ.boundingRect().center())
+                circ.setPen(QPen(QColor("grey")))
+
         self.activity_wedges = []
         self.activity_labels = []
         for activity in self._chronodex.activities:
@@ -101,7 +110,7 @@ class ChronodexGraph(QGraphicsScene):
                 weight = float(category_prefs.get('weight', activity.weight))
             size = weight * MIN_WEDGE_SIZE_FRACTION * WINDOW_SIZE
             wedge = self.addEllipse(0, 0, size, size)
-            color = category_prefs.get('color', "#00FFFFFF")
+            color = category_prefs.get('color', "#FFFFFF")
             wedge.setBrush(QBrush(QColor(color)))
             wedge.setPos(self.center_pos - wedge.boundingRect().center())
 

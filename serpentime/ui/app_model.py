@@ -89,6 +89,15 @@ class AppModel(object):
         self.chronodex_graph.preferences = self._preferences
 
     @property
+    def show_overlay(self):
+        return self._preferences.get("show_overlay", False)
+
+    @show_overlay.setter
+    def show_overlay(self, value):
+        self._preferences["show_overlay"] = value
+        self.chronodex_graph.preferences = self._preferences
+
+    @property
     def use_custom_weight(self):
         return self._preferences.get("use_custom_weight", False)
 
