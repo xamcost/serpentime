@@ -1,11 +1,21 @@
+from math import cos, pi, sin
+
 from PyQt5.QtWidgets import QGraphicsScene
-from PyQt5.QtGui import QColor, QBrush
+from PyQt5.QtGui import QBrush, QColor, QFont
 
 
-MIN_WEDGE_ANGLE = 15 * 16
-START_ANGLE = 90 * 16
+# Conversion factor for angle, from degree to radian
+TO_RAD = pi / 180
+# Wedge angle in Qt are in 1/16 of degree
+QT_ANGLE_FRACTION = 16
+# The minimal angle of a wedge: corresponds to 1h in a day, so 360/24 = 15
+MIN_WEDGE_ANGLE = 15 * QT_ANGLE_FRACTION
+# Midnight is at 90 degree
+START_ANGLE = 90 * QT_ANGLE_FRACTION
 
+# The desired window size
 WINDOW_SIZE = 600
+# The minimal radius of an activity wedge, as a fraction of window size
 MIN_WEDGE_SIZE_FRACTION = 1/12
 
 
@@ -30,7 +40,6 @@ class ChronodexGraph(QGraphicsScene):
 
         self.setSceneRect(0, 0, WINDOW_SIZE, WINDOW_SIZE)
         self.center_pos = self.sceneRect().center()
-        self.size = self.sceneRect().size()
 
         self.draw_chronodex()
 
@@ -58,8 +67,11 @@ class ChronodexGraph(QGraphicsScene):
         """
         self.clear()
         self.activity_wedges = []
+        self.activity_labels = []
         for activity in self._chronodex.activities:
-            self.activity_wedges.append(self.add_activity_wedge(activity))
+            wedge, label = self.add_activity_wedge(activity)
+            self.activity_wedges.append(wedge)
+            self.activity_labels.append(label)
 
     def add_activity_wedge(self, activity):
         """Draws and returns the wedge corresponding to the given
@@ -75,7 +87,12 @@ class ChronodexGraph(QGraphicsScene):
         wedge: QGraphicsEllipseItem or None
             The Qt object representing the wedge for the given Activity.
             If Activity.is_valid() is False, returns None.
+        text: QGraphicsTextItem or None
+            The Qt object representing the activity name. None if the
+            activity is not valid
         """
+        wedge = None
+        text = None
         if activity.is_valid():
             category_prefs = self.categories.get(activity.category, {})
             if self.preferences.get("use_custom_weight", False):
@@ -89,11 +106,37 @@ class ChronodexGraph(QGraphicsScene):
             wedge.setPos(self.center_pos - wedge.boundingRect().center())
 
             start, end = (activity.start, activity.end)
-            wedge.setStartAngle((START_ANGLE - start * MIN_WEDGE_ANGLE))
-            wedge.setSpanAngle(-MIN_WEDGE_ANGLE * (end - start))
+            start_angle = START_ANGLE - start * MIN_WEDGE_ANGLE
+            span_angle = -MIN_WEDGE_ANGLE * (end - start)
+            wedge.setStartAngle(start_angle)
+            wedge.setSpanAngle(span_angle)
 
-            return wedge
-        return None
+            text = None
+            if self.preferences.get("show_labels", False):
+                txt_angle = (start_angle + 0.5 * span_angle)
+                txt_angle /= QT_ANGLE_FRACTION
+                txt_angle *= TO_RAD
+                x_txt = 0.5 * size * cos(txt_angle)
+                y_txt = 0.5 * size * sin(txt_angle)
+                text = self.addText(activity.name)
+                text.setPos(self.center_pos - text.boundingRect().center())
+                text.moveBy(x_txt, -y_txt)
+                # Rotates the label
+                if self.preferences.get("rotate_labels", False):
+                    text.setTransformOriginPoint(text.boundingRect().center())
+                    rot_angle = - txt_angle * 180 / pi
+                    if activity.start >= 12:
+                        rot_angle += 180
+                    text.setRotation(rot_angle)
+                # Brings the label to front, on top of wedges
+                text.setZValue(1)
+                # Sets text bold and grey
+                font = QFont()
+                font.setBold(True)
+                text.setFont(font)
+                text.setDefaultTextColor(QColor("grey"))
+
+        return wedge, text
 
     def get_categories(self):
         """Returns a dictionary mapping activities' categories' names to

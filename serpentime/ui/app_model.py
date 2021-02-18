@@ -71,6 +71,24 @@ class AppModel(object):
         self.chronodex_graph.preferences = self._preferences
 
     @property
+    def show_labels(self):
+        return self._preferences.get("show_labels", False)
+
+    @show_labels.setter
+    def show_labels(self, value):
+        self._preferences["show_labels"] = value
+        self.chronodex_graph.preferences = self._preferences
+
+    @property
+    def rotate_labels(self):
+        return self._preferences.get("rotate_labels", False)
+
+    @rotate_labels.setter
+    def rotate_labels(self, value):
+        self._preferences["rotate_labels"] = value
+        self.chronodex_graph.preferences = self._preferences
+
+    @property
     def use_custom_weight(self):
         return self._preferences.get("use_custom_weight", False)
 
