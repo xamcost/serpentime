@@ -75,9 +75,7 @@ class AppView(QMainWindow):
             QIcon(os.path.join(ICON_PATH, "save-black-18dp.svg")), ""
         )
         self.save_pref_button.clicked.connect(self.save_preferences)
-        self.pref_table_view = QTableView()
-        self.pref_table_view.setModel(self.model.pref_table)
-        self.pref_table_view.resizeColumnsToContents()
+        self.pref_table_view = self.create_pref_table()
         self.model.pref_table.dataChanged.connect(self.on_pref_edited)
         self.show_labels_checkbox = QCheckBox("Show labels")
         self.show_labels_checkbox.setChecked(self.model.show_labels)
@@ -252,6 +250,12 @@ class AppView(QMainWindow):
         table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         table_view.customContextMenuRequested.connect(self.open_table_menu)
         return table_view
+
+    def create_pref_table(self):
+        pref_table = QTableView()
+        pref_table.setModel(self.model.pref_table)
+        pref_table.resizeColumnsToContents()
+        return pref_table
 
     def on_prev_week_clicked(self):
         new_date = self.model.date - timedelta(days=7)
