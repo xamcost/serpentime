@@ -245,7 +245,9 @@ class AppView(QMainWindow):
         )
         table_view.setColumnWidth(start_index, 50)
         table_view.setColumnWidth(end_index, 50)
-        use_custom_weight = self.model.preferences['use_custom_weight']
+        use_custom_weight = self.model.preferences.get(
+            'use_custom_weight', False
+        )
         table_view.setColumnHidden(weight_index, not use_custom_weight)
         table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         table_view.customContextMenuRequested.connect(self.open_table_menu)
