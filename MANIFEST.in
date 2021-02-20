@@ -1,0 +1,4 @@
+include README.md
+include serpentime/ui/icons/*
+include serpentime/files/preferences.json
+graft serpentime/files/data
