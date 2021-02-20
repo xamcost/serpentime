@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from PyQt5.QtWidgets import (
     QAction, QCalendarWidget, QCheckBox, QDateEdit, QDockWidget, QFileDialog,
-    QGraphicsView, QHBoxLayout, QMainWindow, QPushButton, QTableView,
+    QGraphicsView, QHBoxLayout, QMainWindow, QMenu, QPushButton, QTableView,
     QVBoxLayout, QWidget
 )
 from PyQt5.QtCore import QDate, QModelIndex, Qt
@@ -246,6 +246,8 @@ class AppView(QMainWindow):
             SpinBoxDelegate(table_view, 0, 10),
         )
         table_view.resizeColumnsToContents()
+        table_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        table_view.customContextMenuRequested.connect(self.open_table_menu)
         return table_view
 
     def on_prev_week_clicked(self):
@@ -380,3 +382,29 @@ class AppView(QMainWindow):
 
     def set_auto_save(self, state):
         self.model.auto_save = state == Qt.Checked
+
+    def open_table_menu(self, pos):
+        menu = QMenu()
+
+        insert_above = QAction('Insert above', self)
+        insert_above.triggered.connect(self.insert_row_above)
+
+        insert_below = QAction('Insert below', self)
+        insert_below.triggered.connect(self.add_activity)
+
+        remove = QAction('Remove', self)
+        remove.triggered.connect(self.remove_selected_activities)
+
+        menu.addAction(insert_above)
+        menu.addAction(insert_below)
+        menu.addAction(remove)
+        menu.exec_(self.table_view.mapToGlobal(pos))
+
+    def insert_row_above(self):
+        selected = self.table_view.selectedIndexes()
+        row_indexes = [ind.row() for ind in selected]
+        if len(row_indexes) > 0:
+            pos = min(row_indexes)
+        else:
+            pos = self.model.chronodex_table.rowCount(None)
+        self.model.chronodex_table.insertRows(pos, 1, QModelIndex())
