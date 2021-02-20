@@ -25,6 +25,7 @@ class AppView(QMainWindow):
     def __init__(self):
         super().__init__()
         self.model = AppModel()
+        self.col_names = [col[0] for col in self.model.chronodex_table.columns]
         self.initUI()
 
     def initUI(self):
@@ -226,26 +227,28 @@ class AppView(QMainWindow):
     def create_chronodex_table(self):
         table_view = QTableView()
         table_view.setModel(self.model.chronodex_table)
-        col_names = [col[0] for col in self.model.chronodex_table.columns]
+        start_index = self.col_names.index('Start')
         table_view.setItemDelegateForColumn(
-            col_names.index('Start'),
-            SpinBoxDelegate(table_view, 0, 23.99),
+            start_index, SpinBoxDelegate(table_view, 0, 23.99),
         )
+        end_index = self.col_names.index('End')
         table_view.setItemDelegateForColumn(
-            col_names.index('End'),
-            SpinBoxDelegate(table_view, 0.01, 24),
+            end_index, SpinBoxDelegate(table_view, 0.01, 24),
         )
         self.category_delegate = ComboBoxDelegate(
             table_view, self.model.categories
         )
         table_view.setItemDelegateForColumn(
-            col_names.index('Category'), self.category_delegate
+            self.col_names.index('Category'), self.category_delegate
         )
+        weight_index = self.col_names.index('Weight')
         table_view.setItemDelegateForColumn(
-            col_names.index('Weight'),
-            SpinBoxDelegate(table_view, 0, 10),
+            weight_index, SpinBoxDelegate(table_view, 0, 10),
         )
-        table_view.resizeColumnsToContents()
+        table_view.setColumnWidth(start_index, 50)
+        table_view.setColumnWidth(end_index, 50)
+        use_custom_weight = self.model.preferences['use_custom_weight']
+        table_view.setColumnHidden(weight_index, not use_custom_weight)
         table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         table_view.customContextMenuRequested.connect(self.open_table_menu)
         return table_view
@@ -379,6 +382,9 @@ class AppView(QMainWindow):
 
     def set_custom_weight(self, state):
         self.model.use_custom_weight = state == Qt.Checked
+        self.table_view.setColumnHidden(
+            self.col_names.index('Weight'), not self.model.use_custom_weight
+        )
 
     def set_auto_save(self, state):
         self.model.auto_save = state == Qt.Checked
