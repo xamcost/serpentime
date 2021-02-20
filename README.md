@@ -3,7 +3,7 @@
 Serpentime is a simple time tracking software to create Chronodex graph, a
 kind of pie chart where each slice represents a time dedicated to an activity.
 
-![main_window](https://github.com/xamcost/serpentime/tree/main/serpentime/files/main_window.png)
+<img src="/serpentime/files/main_window.png" width=800>
 
 Source code repository and issue tracker:
    https://github.com/xamcost/serpentime
