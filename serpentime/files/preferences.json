@@ -1,1 +1,1 @@
-{}
+{"categories": [{"name": "chore", "color": "#c91e43", "weight": "4"}, {"name": "sleep", "color": "#FFFFFF", "weight": "4"}, {"name": "work", "color": "#32a84e", "weight": "6"}, {"name": "code", "color": "#e8bd20", "weight": "8"}, {"name": "food", "color": "#1e63eb", "weight": "5"}, {"name": "meeting", "color": "#127329", "weight": "7"}, {"name": "call", "color": "#FFB7C5", "weight": "9"}, {"name": "bike", "color": "#14d9d9", "weight": "6"}], "auto_save": true, "use_custom_weight": false, "rotate_labels": true, "show_labels": true, "show_overlay": true}
